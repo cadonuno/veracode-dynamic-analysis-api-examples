@@ -51,8 +51,14 @@ def create_application(application_name, criticality, verbose):
         print(f"Unable to create application profile: {response.status_code}")
         return False
 
+
+def find_exact_match(application_list, application_name):
+    for index in range(len(application_list)):
+        if application_list[index]["name"] == application_name:
+            return index    
+    return -1
+
 def launch_app_linked_scan(application_name, url, verbose, criticality, start_now):
-    """Lists the scanner variables that are defined at the organization level. """
     path = api_base + f"platform_applications?application_name={application_name}"
     response = requests.get(path, auth=RequestsAuthPluginVeracodeHMAC(), headers=headers)
     data = response.json()
@@ -62,26 +68,20 @@ def launch_app_linked_scan(application_name, url, verbose, criticality, start_no
 
     print(f"Initializing scan for url: {url} and search query {application_name}")
 
-    if len(data["_embedded"]["platform_applications"]) == 0:
+    if len(data["_embedded"]["platform_applications"]) > 1:
+        print(f"Warning - multiple applications found for {application_name}")
+        print("Looking for exact match: ")
+        selectedIndex = find_exact_match(data["_embedded"]["platform_applications"], application_name)        
+        if selectedIndex < 0:
+            print("No exact match found, creating new application.")
+            if create_application(application_name, criticality, verbose):
+                launch_app_linked_scan(application_name, url, verbose, criticality, start_now)
+            return
+    elif len(data["_embedded"]["platform_applications"]) == 0:
         print("No applications defined, creating new application.")
         if create_application(application_name, criticality, verbose):
             launch_app_linked_scan(application_name, url, verbose, criticality, start_now)
         return
-    
-    if len(data["_embedded"]["platform_applications"]) > 1:
-        print("Warning - multiple applications found for {application_name}")
-        print("Please select one of the following applications: ")
-        for index in range(len(data["_embedded"]["platform_applications"])):
-            app_name = data["_embedded"]["platform_applications"][index]["name"]
-            app_uuid = data["_embedded"]["platform_applications"][index]["uuid"]
-            print(f" {index+1} - {app_uuid}: {app_name}")
-        selectedIndexStr = input("Insert application index:")
-        if selectedIndexStr and selectedIndexStr.isnumeric():
-            selectedIndex = int(selectedIndexStr)-1
-        print(selectedIndex)
-        if selectedIndex < 0 or selectedIndex > len(data["_embedded"]["platform_applications"]):
-            print("Invalid application selected, closing application")
-            return
     else:
         print("Application found")
         selectedIndex = 0        
