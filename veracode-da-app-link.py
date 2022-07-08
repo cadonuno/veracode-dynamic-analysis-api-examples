@@ -13,9 +13,13 @@ headers = {
 
 def print_help():
     """Prints command line options and exits"""
-    print("""veracode-da-app-link.py -a <application_name> -u <target_url> [-d]
+    print("""veracode-da-app-link.py -a <application_name> -u <target_url> [-d] [-n] [-c "<business_criticality>"]
         Starts a scan of <target_url> linked to an application identified in the Veracode Platform by <application_name>
 """)
+    print("Optional arguments: ")
+    print(" --criticality(-c): Mandatory if no application profile exists for <application_name>.")
+    print("                    Sets the business criticality of the new application profile")
+    print(" -n: Flag to tell the scanner to start a scan right away. Disabled by default")
     sys.exit()
 
 def create_application(application_name, criticality, verbose):
@@ -32,7 +36,7 @@ def create_application(application_name, criticality, verbose):
 }'''
     path = "https://api.veracode.com/appsec/v1/applications"
     scan_request = scan_request.replace("{application_name}", application_name, 1)
-    scan_request = scan_request.replace("{criticality}", criticality, 2)
+    scan_request = scan_request.replace("{criticality}", criticality.upper(), 2)
 
     if verbose:
         print(scan_request)
@@ -76,12 +80,12 @@ def launch_app_linked_scan(application_name, url, verbose, criticality, start_no
             print("No exact match found, creating new application.")
             if create_application(application_name, criticality, verbose):
                 launch_app_linked_scan(application_name, url, verbose, criticality, start_now)
-            return
+            sys.exit(0)
     elif len(data["_embedded"]["platform_applications"]) == 0:
         print("No applications defined, creating new application.")
         if create_application(application_name, criticality, verbose):
             launch_app_linked_scan(application_name, url, verbose, criticality, start_now)
-        return
+        sys.exit(0)
     else:
         print("Application found")
         selectedIndex = 0        
