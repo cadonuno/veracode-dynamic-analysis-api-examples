@@ -110,6 +110,7 @@ def get_schedule_parameter_value(schedule, start_date, end_date, recurrence_type
         schedule_string = schedule_string.replace("{day_of_week}", day_of_week, 1)
     else:
         print_help(1)
+        
     schedule_string = schedule_string + r''',
             "duration": {
                 "length": {length},
@@ -118,6 +119,7 @@ def get_schedule_parameter_value(schedule, start_date, end_date, recurrence_type
     schedule_string = schedule_string.replace("{length}", str(length), 1)
     schedule_string = schedule_string.replace("{unit}", str(unit), 1)
     return schedule_string
+
 def get_schedule_action(schedule):
     if schedule == "NOW":
         return "started scan"
