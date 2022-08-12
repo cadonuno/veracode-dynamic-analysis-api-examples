@@ -4,7 +4,9 @@ import getopt
 import json
 from veracode_api_signing.plugin_requests import RequestsAuthPluginVeracodeHMAC
 
-api_base = "https://api.veracode.com/was/configservice/v1/"
+from veracode_api_signing.credentials import get_credentials
+
+api_base = "https://api.veracode.{instance}/"
 headers = {
     "User-Agent": "Dynamic Analysis API Example Client",
     "Content-Type": "application/json"
@@ -32,7 +34,7 @@ def find_exact_match(scan_list, scan_name):
     return -1
 
 def start_scan(scan_name, schedule, verbose, action):
-    path = f"https://api.veracode.com/was/configservice/v1/analyses?name={scan_name}"
+    path = f"{api_base}/was/configservice/v1/analyses?name={scan_name}"
     response = requests.get(path, auth=RequestsAuthPluginVeracodeHMAC(), headers=headers)
     data = response.json()
 
@@ -73,7 +75,7 @@ def start_scan(scan_name, schedule, verbose, action):
     if verbose:
         print(scan_request)
     
-    scan_path = f"https://api.veracode.com/was/configservice/v1/analyses/{analysis_id}?method=PATCH"
+    scan_path = f"{api_base}/was/configservice/v1/analyses/{analysis_id}?method=PATCH"
     response = requests.put(scan_path, auth=RequestsAuthPluginVeracodeHMAC(), headers=headers, json=json.loads(scan_request))
 
     if verbose:
@@ -129,6 +131,13 @@ def get_schedule_action(schedule):
         return "set up scan schedule"
     return ""
 
+def update_api_base():
+    api_key_id, api_key_secret = get_credentials()
+    if api_key_id.startswith("vera01"):
+        api_base = api_base.replace("{intance}", "eu", 1)
+    else:
+        api_base = api_base.replace("{intance}", "com", 1)
+
 def main(argv):
     """Simple command line support for creating, deleting, and listing DA scanner variables"""
     try:
@@ -172,6 +181,8 @@ def main(argv):
                 length=arg
             if opt in ('-u', '--unit'):
                 unit=arg
+
+        update_api_base()
         if scan_name:
             start_scan(scan_name, get_schedule_parameter_value(schedule, 
                 start_date, end_date, recurrence_type, schedule_end_after, 

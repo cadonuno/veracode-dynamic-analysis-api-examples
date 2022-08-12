@@ -4,7 +4,9 @@ import getopt
 import json
 from veracode_api_signing.plugin_requests import RequestsAuthPluginVeracodeHMAC
 
-api_base = "https://api.veracode.com/was/configservice/v1/"
+from veracode_api_signing.credentials import get_credentials
+
+api_base = "https://api.veracode.{instance}/"
 headers = {
     "User-Agent": "Dynamic Analysis API Example Client",
     "Content-Type": "application/json"
@@ -63,7 +65,7 @@ def find_exact_match(application_list, application_name):
     return -1
 
 def launch_app_linked_scan(application_name, url, verbose, criticality, start_now):
-    path = api_base + f"platform_applications?application_name={application_name}"
+    path = f"{api_base}was/configservice/v1/platform_applications?application_name={application_name}"
     response = requests.get(path, auth=RequestsAuthPluginVeracodeHMAC(), headers=headers)
     data = response.json()
 
@@ -128,7 +130,7 @@ def launch_app_linked_scan(application_name, url, verbose, criticality, start_no
     if verbose:
         print(scan_request)
     
-    scan_path = api_base + "analyses"
+    scan_path = api_base + "was/configservice/v1/analyses"
     response = requests.post(scan_path, auth=RequestsAuthPluginVeracodeHMAC(), headers=headers, json=json.loads(scan_request))
 
     if verbose:
@@ -142,6 +144,13 @@ def launch_app_linked_scan(application_name, url, verbose, criticality, start_no
             print("Successfully started scanning the application")
     else:
         print(f"Unable to create DAST scan: {response.status_code}")
+        
+def update_api_base():
+    api_key_id, api_key_secret = get_credentials()
+    if api_key_id.startswith("vera01"):
+        api_base = api_base.replace("{intance}", "eu", 1)
+    else:
+        api_base = api_base.replace("{intance}", "com", 1)
 
 def main(argv):
     """Simple command line support for creating, deleting, and listing DA scanner variables"""
@@ -168,6 +177,7 @@ def main(argv):
                 target_url = arg
 
 
+        update_api_base()
         if application_name and target_url:
             launch_app_linked_scan(application_name, target_url, verbose, criticality, start_now)
         else:
