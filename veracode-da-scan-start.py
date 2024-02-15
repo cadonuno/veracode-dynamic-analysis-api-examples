@@ -15,7 +15,7 @@ headers = {
 
 def print_help(status):
     """Prints command line options and exits"""
-    print("""veracode-da-scan-edit.py -s <scan_name> -w <when_to_scan> [-d] [-l] [length] [-u] [unit] [scan schedule definition]
+    print("""veracode-da-scan-start.py -s <scan_name> -w <when_to_scan> [-d] [-l] [length] [-u] [unit] [scan schedule definition]
         Starts a scan for a DAST scan named <scan_name>
         -w determines when the scan should start:
           now
