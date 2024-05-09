@@ -1,32 +1,30 @@
-<img src="https://help.veracode.com/internal/api/webapp/header/logo" width="200" /><br>
-
 # Veracode Python Dynamic Analysis API Examples
 
 ## Overview
 
-This project contains small command line utilites that illustrate the use of Veracode's Dynamic Analysis REST APIs.
+This project contains command line utilites that illustrate the use of Veracode's Dynamic Analysis REST APIs.
 
-### Scanner Variables
+#### Scanner Variables
 
-A simple example of usage of the Veracode Dynamic Analysis API to configure scanner variables. Scanner variables are commonly used to centrally manage credentials that can be shared across many analyses.
+veracode-da-app-link.py illustrates the automation of setting DAST scanner variables.
 
-The veracode-da-app-link.py shows how to use these APIs.
+#### Scan Start
 
-### App Linked Scans
+veracode-da-scan-start.py illustrates how to automate starting DAST scans.
 
-Scans can be linked to applications in the vercode platform.  
+#### App Link
 
-The veracode-da-app-link.py script illustrates how this can be automated.
+veracode-da-app-link.py illustrates how to create a DAST scan and link it to an application profile.
 
 ## Installation
 
 Clone this repository:
 
-    git clone https://github.com/veracode/veracode-da-scanner-vars-example.git
+    git clone https://github.com/cadonuno/veracode-dynamic-analysis-api-examples
 
 Install dependencies:
 
-    cd veracode-da-scanner-vars-example
+    cd veracode-dynamic-analysis-api-examples
     pip install -r requirements.txt
 
 ## Usage
@@ -42,6 +40,11 @@ appropriate file protections in place.
     veracode_api_key_id = <YOUR_API_KEY_ID>
     veracode_api_key_secret = <YOUR_API_KEY_SECRET>
 
+Otherwise you will need to set environment variables:
+
+    export VERACODE_API_KEY_ID=<YOUR_API_KEY_ID>
+    export VERACODE_API_KEY_SECRET=<YOUR_API_KEY_SECRET>
+
 ### Scanner Variables
 
     scanner-variables-example.py [-x <variable_name>] [-k <variable_name> -v <variable_value>] [-l]
@@ -51,38 +54,24 @@ appropriate file protections in place.
             -v          Value of variable
             -x          Variable id to delete (id can be obtained from -l)
 
-If you have saved credentials as above you can add a new account-level scanner
-variable with:
+#### Scan Start
 
-    python veracode-da-scanner-vars.py -k PASSWORD -v 'hzZK2HgBC5@['
-    
-You can then list the defined variables with:
+    veracode-da-scan-start.py -s <scan_name> -w <when_to_scan> [-d] [-l] [length] [-u] [unit] [scan schedule definition]
+        Starts a scan for a DAST scan named <scan_name>
+        -w determines when the scan should start:
+          now
+          once
+          scheduled
+        -Once:
+         - --start_date/-b:
+            date to start scan, formatted as 2019-09-27T16:49:00-04:00
 
-    python veracode-da-scanner-vars.py -l
-
-Otherwise you will need to set environment variables before running `example.py`:
-
-    export VERACODE_API_KEY_ID=<YOUR_API_KEY_ID>
-    export VERACODE_API_KEY_SECRET=<YOUR_API_KEY_SECRET>
-    python veracode-da-scanner-vars-example.py -l
-
-### App Linked Scans
-
-If you have saved credentials as above you can initiate an app linked scan with:
-
-    python veracode-da-app-link.py -a <application_name> -u <target_url>
-
-Note that if you get a 400 back, try running with -d.  Common issues are reusing the same analysis name, and linking an app that is already linked to another scan (example payload that comes back in that case):
-
-    {'_embedded': {'errors': [{'code': 'APP_IS_LINKED_TO_ANOTHER_SCAN', 'title': 'Application is linked to a different scan', 'detail': 'Application is aleady linked to a different scan.', 'meta': {'error_type': 'APP_IS_LINKED_TO_ANOTHER_SCAN', 'scan_id': '32a3633fd74488ca19561c521f1d9f2d', 'app_id': '914bedaf-ee52-43ff-9020-cf0d5dbf7f1b'}, 'status': '400'}]}}
-
+#### App Link
+    veracode-da-app-link.py -a <application_name> -u <target_url> [-d] [-n (Flag to tell the scanner to start a scan right away. Disabled by default)] [-c "<business_criticality>" (Mandatory if no application profile exists for <application_name>)]
+        Starts a scan of <target_url> linked to an application identified in the Veracode Platform by <application_name>
 
 ## License
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 See the [LICENSE](LICENSE) file for details
-
-## Security 
-
-See the [SECURITY.md](Security Policy) for details on how to report vulnerabilities and any known static analysis issues.
